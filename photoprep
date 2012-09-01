@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# photoprep: Image rescaling/watermarking script
+# ==============================================
+#   Requirements: ImageMagick
+
+# Initial commit: 31 August 2012 (Joe <jpl@ireland.com>)
+#  Last revision: 31 August 2012 (Joe <jpl@ireland.com>)
+
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# Store command arguments.
+while getopts "e:l:s:" OPTION; do
+    case $OPTION in
+        e)
+            EXT=$OPTARG
+            ;;
+        l)
+            LOGOFILE=$OPTARG
+            ;;
+        s)
+            SIZE=$OPTARG
+            ;;
+    esac
+done
+
+# Default input file extension to "jpg" if not specified by user.
+if [ -z $EXT ]
+then
+    EXT="jpg"
+fi
+
+# Default to a size of 1200 pixels if not specified by user.
+if [ -z $SIZE ]
+then
+    SIZE="1200"
+fi
+
+# Check if "SIZE" directory already exists.
+if [ -e ./$SIZE ]
+then
+    echo -e "\nWARNING: The directory \"$SIZE\" already exists."
+    echo -n "         Do you want to continue? (y/n): "
+    read ANSWER
+    ANSWER=${ANSWER,,}
+    case "$ANSWER" in
+        y|yes )
+            # The following needlessly adds 1.5 seconds to the processing time.
+            echo -en "\n         Hi-yo, Silver! "
+            sleep 0.25
+            echo -n "."
+            sleep 0.25
+            echo -n "."
+            sleep 0.25
+            echo -n "."
+            sleep 0.25
+            echo -n " Away!"
+            sleep 0.5
+            echo -en "\n\n"
+            ;;
+        n|no )
+            echo -e "\n         Exiting.\n" 
+            exit
+            ;;
+        * )
+            echo -e "\n         Unrecognized response. Exiting.\n"
+            exit
+            ;;
+    esac
+else
+    mkdir $SIZE
+fi
+
+# Check if a logo file has been specified by user.
+if [ -z $LOGOFILE ]
+then
+    for IMAGEFILE in *.$EXT
+    do
+       convert $IMAGEFILE -resize $SIZE $SIZE/${IMAGEFILE%\.*}.jpg
+    done
+else    # Logo is specified and will be composited over each image.
+    if [ -e $LOGOFILE ]
+    then
+        # Resize logo to 6% of image width.
+        sixpercent=$((SIZE * 3 / 50))
+        convert $LOGOFILE -resize x$sixpercent\> $SIZE/$LOGOFILE
+        for IMAGEFILE in *.$EXT
+        do
+            echo "Processing $IMAGEFILE ..."
+            IMAGE=${IMAGEFILE%\.*}
+            convert $IMAGEFILE -resize $SIZE $SIZE/$IMAGE.png
+            composite $SIZE/$LOGOFILE -compose darken -gravity SouthEast \
+                                -geometry +64+32 \
+                      $SIZE/$IMAGE.png \
+                      -quality 92% $SIZE/$IMAGE.jpg
+            rm $SIZE/$IMAGE.png
+        done
+        rm $SIZE/$LOGOFILE
+    else    # Logo file not found.
+        echo -e "\nERROR: Logo file $LOGOFILE not found. Exiting.\n"
+        if [ -z $(ls $SIZE) ]
+        then
+            rmdir $SIZE
+        fi
+    fi
+fi
+
+echo -e "\nDone.\n"

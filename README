@@ -1,0 +1,45 @@
+photoprep
+=========
+
+Release 0.0
+
+Joe Lee <jpl@ireland.com>
+31 August 2012
+
+
+
+INTRODUCTION
+------------
+photoprep is a BASH script that relies on ImageMagick to resize and watermark 
+images.
+
+First, it creates a new directory. The name of the new directory is the width of the output images (by default this is 1200).
+
+For each image in the present working directory, the script will:
+
+1. Resize the photo to a specified width (by default 1200 px) and output to 
+   PNG format (in the new directory).
+
+2. Resize the logo to 6% of the width of the photo and output to PNG format (in
+   the new directory). Exception: The logo won't be resized if it is already 
+   less than or equal to 6% of the photo width.
+
+3. Composite the resized logo over the resized photo, and output to JPEG 
+   format, optimized at 92% (in the new directory).
+
+4. Remove the two PNG files.
+
+
+
+USAGE
+-----
+
+photoprep [-l <LOGO_FILE>] [-e <EXTENSION_OF_INPUT_FILES>] [-s <OUTPUT_WIDTH>]
+
+If no logo file is provided, the image will not be watermarked.
+
+If no extension is specified, by default, the script will look for files that
+end in the ".jpg" extension.
+
+If no output width is provided, by default, the script will output to JPEG
+files that are 1200 px in width.
