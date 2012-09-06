@@ -89,19 +89,19 @@ then
     for IMAGEFILE in *.$EXT
     do
        echo "Processing $IMAGEFILE ..."
-       convert "$IMAGEFILE" -resize $SIZE $SIZE/"${IMAGEFILE%\.*}.jpg"
+       convert "$IMAGEFILE" -resize $SIZE\> $SIZE/"${IMAGEFILE%\.*}.jpg"
     done
 else    # Logo is specified and will be composited over each image.
     if [ -e $LOGOFILE ]
     then
-        # Resize logo to 6% of image width.
+        # Resize logo so that its height is 6% of image width.
         sixpercent=$((SIZE * 3 / 50))
         convert "$LOGOFILE" -resize x$sixpercent\> $SIZE/"$LOGOFILE"
         for IMAGEFILE in *.$EXT
         do
             echo "Processing $IMAGEFILE ..."
             IMAGE=${IMAGEFILE%\.*}
-            convert "$IMAGEFILE" -resize $SIZE $SIZE/"$IMAGE.png"
+            convert "$IMAGEFILE" -resize $SIZE\> $SIZE/"$IMAGE.png"
             composite $SIZE/"$LOGOFILE" -gravity SouthEast \
                                 -geometry +64+32 \
                       $SIZE/"$IMAGE.png" \
