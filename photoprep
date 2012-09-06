@@ -54,7 +54,7 @@ then
     echo -e "\nWARNING: The directory \"$SIZE\" already exists."
     echo -n "         Do you want to continue? (y/n): "
     read ANSWER
-    ANSWER=${ANSWER,,}
+    ANSWER=$(sed -e 's/\(.*\)/\L\1/' <<<$ANSWER);
     case "$ANSWER" in
         y|yes )
             # The following needlessly adds 1.5 seconds to the processing time.
@@ -88,26 +88,26 @@ if [ -z $LOGOFILE ]
 then
     for IMAGEFILE in *.$EXT
     do
-       convert $IMAGEFILE -resize $SIZE $SIZE/${IMAGEFILE%\.*}.jpg
+       echo "Processing $IMAGEFILE ..."
+       convert "$IMAGEFILE" -resize $SIZE $SIZE/"${IMAGEFILE%\.*}.jpg"
     done
 else    # Logo is specified and will be composited over each image.
     if [ -e $LOGOFILE ]
     then
         # Resize logo to 6% of image width.
         sixpercent=$((SIZE * 3 / 50))
-        convert $LOGOFILE -resize x$sixpercent\> $SIZE/$LOGOFILE
+        convert "$LOGOFILE" -resize x$sixpercent\> $SIZE/"$LOGOFILE"
         for IMAGEFILE in *.$EXT
         do
             echo "Processing $IMAGEFILE ..."
             IMAGE=${IMAGEFILE%\.*}
-            convert $IMAGEFILE -resize $SIZE $SIZE/$IMAGE.png
-            composite $SIZE/$LOGOFILE -compose darken -gravity SouthEast \
+            convert "$IMAGEFILE" -resize $SIZE $SIZE/"$IMAGE.png"
+            composite $SIZE/"$LOGOFILE" -gravity SouthEast \
                                 -geometry +64+32 \
-                      $SIZE/$IMAGE.png \
-                      -quality 92% $SIZE/$IMAGE.jpg
-            rm $SIZE/$IMAGE.png
+                      $SIZE/"$IMAGE.png" \
+                      -quality 92% $SIZE/"$IMAGE.jpg"
+            rm $SIZE/"$IMAGE.png"
         done
-        rm $SIZE/$LOGOFILE
     else    # Logo file not found.
         echo -e "\nERROR: Logo file $LOGOFILE not found. Exiting.\n"
         if [ -z $(ls $SIZE) ]
@@ -115,6 +115,7 @@ else    # Logo is specified and will be composited over each image.
             rmdir $SIZE
         fi
     fi
+    rm $SIZE/"$LOGOFILE"
 fi
 
 echo -e "\nDone.\n"
